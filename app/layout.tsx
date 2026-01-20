@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Cormorant_Garamond } from "next/font/google";
+import {
+  Plus_Jakarta_Sans,
+  Cormorant_Garamond,
+  Caveat,
+} from "next/font/google";
 import "./globals.css";
 import { TransitionProvider } from "@/components/TransitionContext";
 import LayoutWrapper from "@/components/LayoutWrapper";
@@ -17,6 +21,11 @@ const cormorantGaramond = Cormorant_Garamond({
   weight: ["400", "500", "600", "700"],
 });
 
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Widyatara",
   description: "Pucuk Sigma Elearning Bos",
@@ -30,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${plusJakartaSans.variable} ${cormorantGaramond.variable} antialiased`}
+        className={`${plusJakartaSans.variable} ${cormorantGaramond.variable} ${caveat.variable} antialiased`}
       >
         <AuthProvider>
           <TransitionProvider>

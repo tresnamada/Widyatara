@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CardItem, GameMode, GameState, GameStats } from "../types";
-import { GAME_DURATION, LANGUAGE_DATA } from "../constants";
+import { GAME_DURATION, SYMBOL_DATA } from "../constants";
 import GameCard from "./GameCard";
 import GameOverlay from "./GameOverlay";
 import { Timer, ArrowLeft, RefreshCw } from "lucide-react";
@@ -33,7 +33,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ mode, onExit }) => {
   }, [mode]);
 
   const prepareGame = useCallback(() => {
-    const data = LANGUAGE_DATA;
+    const data = SYMBOL_DATA;
     const shuffled = [...data].sort(() => Math.random() - 0.5);
     setCards(shuffled);
     setFlippedIndices([]);
@@ -82,9 +82,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ mode, onExit }) => {
 
   // Game Timer Logic
   useEffect(() => {
-    // For LANGUAGE mode, we don't pause for feedback modal on mismatch typically
-    // but the original logic had it. Since we only have LANGUAGE now, we can simplify.
-    if (gameState !== "PLAYING") return;
+    // Only pause timer for SYMBOL mode when feedback is shown
+    if (gameState !== "PLAYING" || feedbackModal.show) return;
 
     const timer = setInterval(() => {
       setStats((prev) => {
@@ -138,29 +137,19 @@ const GameBoard: React.FC<GameBoardProps> = ({ mode, onExit }) => {
       setMatchedIds(nextMatchedIds);
       setFlippedIndices([]);
 
-      // Show feedback for correct match
+      // Show explanation for correct match in Symbol mode
       setFeedbackModal({
         show: true,
         isCorrect: true,
         item: card,
       });
-
-      // Check win for LANGUAGE (it will show the win overlay after feedback modal closes)
-      const totalPairs = cards.length / 2;
-      if (nextMatchedIds.size === totalPairs) {
-        setGameState("WON");
-      }
     }, 500);
   };
 
   const handleMismatch = (card: CardItem) => {
     setTimeout(() => {
-      // Show feedback on mismatch
-      setFeedbackModal({
-        show: true,
-        isCorrect: false,
-        item: card,
-      });
+      // Just reset flipped indices for Symbol mode
+      setFlippedIndices([]);
     }, 800);
   };
 
@@ -198,7 +187,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ mode, onExit }) => {
                 Bersiaplah
               </h2>
               <p className="text-[#543310]/80 mb-8 font-sans">
-                Cocokkan Bahasa dengan artinya di kartu dalam{" "}
+                Cocokkan gambar dengan namanya di kartu dalam{" "}
                 {Math.floor(GAME_DURATION / 60)} menit.
               </p>
               <button

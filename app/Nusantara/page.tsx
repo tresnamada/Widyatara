@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTransitionContext } from "@/components/TransitionContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,45 +11,64 @@ const ISLANDS = [
   {
     name: "Sumatera",
     file: "/pulau/sumatera.svg",
-    style: {
-      width: "20%", left: "8%", top: "30%"
-    },
+    style: { width: "30%", left: "-5%", top: "20%" },
   },
   {
     name: "Kalimantan",
     file: "/pulau/Kalimantan.svg",
-    style: { width: "19%", left: "30%", top: "20%" },
+    style: { width: "25%", left: "25%", top: "20%" },
   },
   {
     name: "Jawa",
     file: "/pulau/jawa.svg",
-    style: { width: "46%", left: "25%", top: "72%" },
+    style: { width: "65%", left: "17%", top: "90%" },
   },
   {
     name: "Sulawesi",
     file: "/pulau/sulawesi.svg",
-    style: { width: "14%", left: "50%", top: "22%" },
+    style: { width: "25%", left: "50%", top: "15%" },
   },
   {
     name: "Papua",
     file: "/pulau/papua.svg",
-    style: { width: "28%", left: "60%", top: "28%" },
+    style: { width: "40%", left: "70%", top: "28%" },
   },
 ];
 
 export default function NusantaraPage() {
   const router = useRouter();
-  const { triggerTransition } = useTransitionContext();
+  const { setIsAnimating } = useTransitionContext();
   const [selectedIsland, setSelectedIsland] = useState<string | null>(null);
   const [hoveredIsland, setHoveredIsland] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Trigger cloud animation on page mount
+  useEffect(() => {
+    setIsAnimating(true);
+
+    // Duration matches CloudTransition (4 seconds)
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      setIsAnimating(false);
+    }, 4000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []); // Empty dependency array - runs once on mount
 
   // Find active island data
-  const selectedIslandData = ISLANDS.find(i => i.name === selectedIsland);
+  const selectedIslandData = ISLANDS.find((i) => i.name === selectedIsland);
 
   return (
-    <section className="relative w-full min-h-screen bg-[#F0F8FF] overflow-hidden flex flex-col items-center justify-start pt-32 md:pt-48 pb-[200px]">
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isLoading ? 0 : 1 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="relative w-full min-h-screen bg-background overflow-hidden flex flex-col items-center justify-start pt-10 md:pt-32 pb-10 md:pb-60"
+    >
       {/* Background: Light Blue Solid (No Gradient) */}
-      <div className="absolute inset-0 bg-[#E3F2FD] -z-10" />
+      <div className="absolute inset-0 bg-background -z-10" />
 
       {/* Decorative Texture/Pattern */}
       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/paper.png')] -z-10" />
@@ -61,7 +80,7 @@ export default function NusantaraPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-7xl font-black text-[#543310] tracking-tight uppercase drop-shadow-sm font-serif"
         >
-          Widyatara
+          NUSANTARA
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -90,10 +109,12 @@ export default function NusantaraPage() {
       {/* Map Interactive Container - Scrollable on Mobile */}
       <div
         className="relative w-full md:max-w-7xl px-0 md:px-4 flex-1 flex items-center md:justify-center overflow-x-auto md:overflow-visible pb-20 md:pb-0"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} // Hide scrollbar Firefox/IE
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }} // Hide scrollbar Firefox/IE
       >
         <style jsx>{`
-          div::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome/Safari */
+          div::-webkit-scrollbar {
+            display: none;
+          } /* Hide scrollbar Chrome/Safari */
         `}</style>
 
         <div
@@ -105,7 +126,8 @@ export default function NusantaraPage() {
           {ISLANDS.map((island) => {
             const isSelected = selectedIsland === island.name;
             const isHovered = hoveredIsland === island.name;
-            const isBlur = (selectedIsland || hoveredIsland) && !isSelected && !isHovered;
+            const isBlur =
+              (selectedIsland || hoveredIsland) && !isSelected && !isHovered;
 
             return (
               <motion.div
@@ -119,11 +141,14 @@ export default function NusantaraPage() {
                 animate={{
                   opacity: isBlur ? 0.3 : 1,
                   scale: isSelected || isHovered ? 1.05 : 1,
-                  filter: isSelected || isHovered ? "drop-shadow(0 25px 25px rgba(0,0,0,0.15))" : "drop-shadow(0 8px 12px rgba(84,51,16,0.1))"
+                  filter:
+                    isSelected || isHovered
+                      ? "drop-shadow(0 25px 25px rgba(0,0,0,0.15))"
+                      : "drop-shadow(0 8px 12px rgba(84,51,16,0.1))",
                 }}
                 whileHover={{
                   scale: 1.05,
-                  filter: "drop-shadow(0 15px 20px rgba(84,51,16,0.15))"
+                  filter: "drop-shadow(0 15px 20px rgba(84,51,16,0.15))",
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -171,7 +196,6 @@ export default function NusantaraPage() {
             className="fixed bottom-36 md:bottom-12 left-1/2 -translate-x-1/2 z-50 rounded-full w-[95%] md:w-auto max-w-[400px]"
           >
             <div className="bg-[#F8F4E1]/95 backdrop-blur-2xl border border-[#AF8F6F]/30 p-2 pr-2.5 rounded-full shadow-[0_20px_60px_rgba(84,51,16,0.4)] flex items-center gap-3 md:gap-6 w-full justify-between">
-
               {/* Icon Circle */}
               <div className="flex items-center justify-center w-10 h-10 md:w-14 md:h-14 bg-[#543310] rounded-full text-[#F8F4E1] shadow-inner shrink-0 ml-1">
                 <MapPin size={20} className="md:w-7 md:h-7" />
@@ -184,7 +208,7 @@ export default function NusantaraPage() {
                 </span>
                 <motion.h2
                   layout
-                  className="text-lg md:text-2xl font-black text-[#543310] font-serif uppercase tracking-wider leading-none truncate"
+                  className="text-lg md:text-2xl font-black text-[#543310] font-serif"
                 >
                   {selectedIslandData.name}
                 </motion.h2>
@@ -201,19 +225,20 @@ export default function NusantaraPage() {
                    transition-all duration-300
                    flex items-center gap-2
                  "
-                onClick={() => window.location.href = `/${selectedIsland}`}
+                onClick={() => (window.location.href = `/${selectedIsland}`)}
               >
                 <span className="uppercase tracking-widest text-[10px] md:text-xs font-black">
                   Jelajahi
                 </span>
-                <ArrowRight size={14} className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  size={14}
+                  className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform"
+                />
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-    </section>
+    </motion.section>
   );
 }
-

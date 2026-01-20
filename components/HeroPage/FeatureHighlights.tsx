@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Map, Sparkles, Gamepad2, ArrowRight, Compass } from "lucide-react";
-import AnimatedLink from "./AnimatedLink";
+import Link from "next/link";
 
 const FeatureHighlights = () => {
   return (
@@ -72,7 +72,7 @@ const FeatureHighlights = () => {
               <Gamepad2 size={24} className="md:w-8 md:h-8" />
             </div>
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8 leading-tight">
-              Jelajahi Nusantara <br /> di 6 pulau yang ada.
+              Jelajahi Nusantara <br /> di 5 pulau yang ada.
             </h3>
 
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 md:gap-6 mb-8 lg:mb-auto mt-2 lg:mt-4 lg:px-2">
@@ -81,7 +81,6 @@ const FeatureHighlights = () => {
                 "Jawa",
                 "Kalimantan",
                 "Sumatera",
-                "Bali",
                 "Papua",
               ].map((island, i) => (
                 <div
@@ -96,7 +95,7 @@ const FeatureHighlights = () => {
               ))}
             </div>
 
-            <AnimatedLink
+            <Link
               href="/Nusantara"
               className="mt-6 lg:mt-10 py-4 bg-white text-[#AF8F6F] rounded-2xl font-black text-xs uppercase tracking-widest text-center hover:bg-[#F8F4E1] transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2 group/btn"
             >
@@ -105,7 +104,7 @@ const FeatureHighlights = () => {
                 size={14}
                 className="group-hover/btn:translate-x-1 transition-transform"
               />
-            </AnimatedLink>
+            </Link>
           </motion.div>
 
           {/* Node 3: Interactive Map (Wide Bridge Feature) */}

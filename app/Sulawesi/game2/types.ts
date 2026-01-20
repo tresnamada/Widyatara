@@ -1,4 +1,4 @@
-export type GameMode = "LANGUAGE";
+export type GameMode = "SYMBOL";
 
 export type GameState =
   | "IDLE"

@@ -15,7 +15,7 @@ export default function SumateraOnboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center p-4 md:p-8 font-plus-jakarta">
+    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center p-4 md:p-8 font-plus-jakarta mt-10">
       <AnimatePresence mode="wait">
         {step === 0 ? (
           <motion.div

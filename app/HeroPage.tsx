@@ -1,8 +1,8 @@
 import LogoLoop, { logos } from "@/components/HeroPage/LogoLoop";
 import FeatureHighlights from "../components/HeroPage/FeatureHighlights";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { MoveRight } from "lucide-react";
-import AnimatedLink from "../components/HeroPage/AnimatedLink";
 import Mascot3D from "../components/HeroPage/Mascot3D";
 import CloudDivider from "@/components/HeroPage/CloudDivider";
 
@@ -38,13 +38,13 @@ export default function HeroPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <AnimatedLink
+              <Link
                 href="/Nusantara"
                 className="w-full sm:w-auto px-8 py-4 bg-accent-gold hover:bg-accent-gold/90 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all hover:translate-y-[-2px] shadow-lg shadow-accent-gold/20 cursor-pointer text-sm lg:text-base"
               >
                 Mulai Petualangan
                 <MoveRight size={20} />
-              </AnimatedLink>
+              </Link>
             </div>
           </motion.div>
         </div>

@@ -4,7 +4,7 @@ import React from "react";
 import GameBoard from "./components/GameBoard";
 import { useRouter } from "next/navigation";
 
-export default function GameOnePage() {
+export default function GameTwoPage() {
   const router = useRouter();
 
   return (
@@ -17,7 +17,7 @@ export default function GameOnePage() {
 
       <main className="grow flex flex-col items-center justify-center p-4 relative overflow-hidden z-10">
         <div className="w-full">
-          <GameBoard mode="LANGUAGE" onExit={() => router.push("/Sulawesi")} />
+          <GameBoard mode="SYMBOL" onExit={() => router.push("/Sulawesi")} />
         </div>
       </main>
     </div>

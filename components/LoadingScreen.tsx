@@ -4,28 +4,52 @@ import React, { useEffect, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function LoadingScreen({ onFinished }: { onFinished: () => void }) {
-  const { progress } = useProgress();
+export default function LoadingScreen({
+  onFinished,
+}: {
+  onFinished: () => void;
+}) {
+  const { progress: realProgress } = useProgress();
+  const [progress, setProgress] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+
+  useEffect(() => {
+    // Dynamic progress simulation
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+
+        // Non-linear progress: faster at first, slower as it crawls to 100
+        const remaining = 100 - prev;
+        const jump = Math.max(0.5, remaining * 0.05); // Dynamic jump
+        const next = prev + jump;
+
+        return next > 99.9 ? 100 : next;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Boost progress with real progress if available
+    if (realProgress > progress) {
+      setProgress(realProgress);
+    }
+  }, [realProgress, progress]);
 
   useEffect(() => {
     if (progress === 100) {
       const timer = setTimeout(() => {
         setIsFinished(true);
         onFinished();
-      }, 1000);
+      }, 500); // Give a brief moment at 100%
       return () => clearTimeout(timer);
     }
   }, [progress, onFinished]);
-  useEffect(() => {
-    const fallback = setTimeout(() => {
-      if (!isFinished) {
-        setIsFinished(true);
-        onFinished();
-      }
-    }, 10000);
-    return () => clearTimeout(fallback);
-  }, [isFinished, onFinished]);
 
   return (
     <AnimatePresence>

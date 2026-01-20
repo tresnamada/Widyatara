@@ -1,11 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Search, Home, Compass, LogIn, LogOut, User } from "lucide-react";
+import {
+  Search,
+  Home,
+  Compass,
+  LogIn,
+  LogOut,
+  User,
+  ChevronDown,
+} from "lucide-react";
 import { useTransitionContext } from "./TransitionContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth, db } from "@/lib/firebase";
@@ -70,6 +78,9 @@ const Navbar = () => {
 
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,6 +92,7 @@ const Navbar = () => {
       // Mobile hide/show logic
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false); // Scroll Down -> Hide
+        setIsMobileDropdownOpen(false); // Also hide mobile dropdown on scroll down
       } else {
         setIsVisible(true); // Scroll Up -> Show
       }
@@ -91,6 +103,26 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsUserDropdownOpen(false);
+      }
+    };
+
+    if (isUserDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isUserDropdownOpen]);
 
   // Animation Variants
   const containerVariants: Variants = {
@@ -114,24 +146,22 @@ const Navbar = () => {
   const { triggerTransition } = useTransitionContext();
 
   const handleLinkClick = (e: React.MouseEvent, link: string) => {
-    if (link === "/Nusantara") {
-      e.preventDefault();
-      triggerTransition(link);
-    }
+    // Transition disabled as requested
   };
 
   return (
     <>
       {/* --- DESKTOP NAVBAR --- */}
-      <nav className="fixed top-3 left-0 right-0 z-50 hidden md:flex justify-center px-4 pointer-events-none">
+      <nav className="fixed top-3 left-0 right-0 z-100 hidden md:flex justify-center px-4 pointer-events-none">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className={`pointer-events-auto relative flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all duration-500 ${scrolled
-            ? "bg-white border border-gray-100 shadow-xl ring-1 ring-black/5"
-            : "bg-white/95 backdrop-blur-md border border-white/20 shadow-lg ring-1 ring-white/20"
-            }`}
+          className={`pointer-events-auto relative flex items-center gap-4 px-4 py-2.5 rounded-xl transition-all duration-500 ${
+            scrolled
+              ? "bg-white border border-gray-100 shadow-xl ring-1 ring-black/5"
+              : "bg-white/95 backdrop-blur-md border border-white/20 shadow-lg ring-1 ring-white/20"
+          }`}
         >
           {/* Logo Section */}
           <Link href="/">
@@ -173,9 +203,10 @@ const Navbar = () => {
                   className={`
                     relative z-10 px-5 py-2.5 rounded-xl text-sm font-bold tracking-tight transition-colors duration-300
                     flex items-center gap-1.5 cursor-pointer
-                    ${pathname === item.link
-                      ? "text-[#F8F4E1]"
-                      : "text-[#543310]/80 hover:text-[#543310]"
+                    ${
+                      pathname === item.link
+                        ? "text-[#F8F4E1]"
+                        : "text-[#543310]/80 hover:text-[#543310]"
                     }
                   `}
                 >
@@ -221,19 +252,69 @@ const Navbar = () => {
           {/* Login/User Button */}
           <motion.div variants={itemVariants}>
             {user ? (
-              <div className="flex items-center gap-3">
-                <span className="text-[#543310] font-bold text-sm hidden lg:block">
-                  Hi, {userName || "Pengguna"}
-                </span>
+              <div className="relative" ref={dropdownRef}>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleLogout}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#543310] text-[#F8F4E1] shadow-md hover:bg-[#3d250c] transition-colors"
-                  title="Keluar"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                  className="flex items-center gap-2 px-3 cursor-pointer"
                 >
-                  <LogOut size={18} />
+                  {/* Avatar */}
+                  <div className="w-8 h-8 rounded-full bg-[#543310] flex items-center justify-center text-[#F8F4E1] font-bold text-sm">
+                    {userName ? userName.charAt(0).toUpperCase() : "U"}
+                  </div>
+
+                  {/* Username */}
+                  <span className="text-[#543310] font-bold text-sm hidden lg:block">
+                    {userName || "Pengguna"}
+                  </span>
+
+                  {/* Chevron */}
+                  <ChevronDown
+                    size={16}
+                    className={`text-[#543310] transition-transform ${isUserDropdownOpen ? "rotate-180" : ""}`}
+                  />
                 </motion.button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {isUserDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-4 w-48 bg-white text rounded-xl shadow-lg border border-primary overflow-hidden z-50"
+                    >
+                      {/* Profile Option */}
+                      <div>
+                        <button
+                          className="cursor-pointer w-full px-4 py-3 flex items-center gap-3 hover:bg-[#e0cfad]/20 transition-colors text-left"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                        >
+                          <User size={18} className="text-[#543310]" />
+                          <span className="text-[#543310] font-medium text-sm">
+                            Profil Saya
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Logout Option */}
+                      <button
+                        onClick={() => {
+                          setIsUserDropdownOpen(false);
+                          handleLogout();
+                        }}
+                        className="cursor-pointer w-full px-4 py-3 flex items-center gap-3 hover:bg-[#9F1239]/10 transition-colors text-left border-t border-[#AF8F6F]/10"
+                      >
+                        <LogOut size={18} className="text-[#9F1239]" />
+                        <span className="text-[#9F1239] font-medium text-sm">
+                          Keluar
+                        </span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <Link href="/login">
@@ -254,9 +335,9 @@ const Navbar = () => {
       </nav>
 
       {/* --- MOBILE MODERNISED NAVBAR (Liquid Dock) --- */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 md:hidden w-[90%] max-w-[400px]">
+      <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 md:hidden w-[90%] max-w-[400px]">
         <motion.div
-          className="relative bg-[#F8F4E1]/80 backdrop-blur-3xl border border-[#AF8F6F]/20 shadow-[0_20px_50px_rgba(84,51,16,0.2)] rounded-xl px-3 py-2 flex items-center justify-around"
+          className="relative bg-white backdrop-blur-3xl border border-[#AF8F6F]/20 shadow-[0_20px_50px_rgba(84,51,16,0.2)] rounded-xl px-3 py-2 flex items-center justify-around"
           initial={{ y: 100, opacity: 0, scale: 0.8 }}
           animate={{
             y: isVisible ? 0 : 200, // Slide down if not visible
@@ -273,7 +354,12 @@ const Navbar = () => {
             { name: "Beranda", link: "/", icon: Home },
             { name: "Nusantara", link: "/Nusantara", icon: Compass },
             user
-              ? { name: userName?.split(" ")[0] || "Akun", action: handleLogout, icon: User, isAction: true }
+              ? {
+                  name: userName?.split(" ")[0] || "Akun",
+                  action: () => setIsMobileDropdownOpen(!isMobileDropdownOpen),
+                  icon: User,
+                  isAction: true,
+                }
               : { name: "Login", link: "/login", icon: LogIn },
           ].map((item: any) => {
             const isActive = !item.isAction && item.link === pathname;
@@ -282,7 +368,10 @@ const Navbar = () => {
             const Wrapper: any = item.isAction ? "button" : Link;
             const props = item.isAction
               ? { onClick: item.action }
-              : { href: item.link || "#", onClick: (e: any) => handleLinkClick(e, item.link!) };
+              : {
+                  href: item.link || "#",
+                  onClick: (e: any) => handleLinkClick(e, item.link!),
+                };
 
             return (
               <Wrapper
@@ -291,8 +380,9 @@ const Navbar = () => {
                 className="flex-1 flex justify-center w-full"
               >
                 <motion.div
-                  className={`relative flex flex-col items-center gap-1 p-4 rounded-xl transition-colors duration-500 ${isActive ? "text-[#F8F4E1]" : "text-[#543310]/60"
-                    }`}
+                  className={`relative flex flex-col items-center gap-1 p-4 rounded-xl transition-colors duration-500 ${
+                    isActive ? "text-[#F8F4E1]" : "text-[#543310]/60"
+                  }`}
                   whileTap={{ scale: 0.9 }}
                 >
                   {/* Background Liquid Indicator */}
@@ -317,8 +407,9 @@ const Navbar = () => {
                   >
                     <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                     <span
-                      className={`text-[8px] font-black uppercase tracking-wider ${isActive ? "opacity-100" : "opacity-70"
-                        }`}
+                      className={`text-[8px] font-black uppercase tracking-wider ${
+                        isActive ? "opacity-100" : "opacity-70"
+                      }`}
                     >
                       {item.name}
                     </span>
@@ -329,6 +420,75 @@ const Navbar = () => {
           })}
         </motion.div>
       </nav>
+
+      {/* Mobile User Dropdown - Bottom Sheet */}
+      <AnimatePresence mode="wait">
+        {isMobileDropdownOpen && user && (
+          <>
+            {/* Bottom Sheet */}
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 250,
+                opacity: { duration: 0.2 },
+              }}
+              className="fixed bottom-28 left-1/2 -translate-x-1/2 w-[85%] max-w-sm bg-white rounded-3xl shadow-2xl z-40 md:hidden border border-primary"
+            >
+              <div className="p-5">
+                {/* User Info Section */}
+                <div className="flex items-center gap-4 mb-4">
+                  {/* Avatar */}
+                  <div className="w-10 h-10 rounded-full bg-[#543310] flex items-center justify-center text-[#F8F4E1] font-bold text-2xl">
+                    {userName ? userName.charAt(0).toUpperCase() : "U"}
+                  </div>
+
+                  {/* Username and Email */}
+                  <div className="flex-1">
+                    <h3 className="text-[#543310] font-bold text-sm">
+                      {userName || "Pengguna"}
+                    </h3>
+                    <p className="text-[#74512D] text-xs">
+                      {user.email || "email@example.com"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-5">
+                  {/* Profile Button */}
+                  <div>
+                    <button
+                      onClick={() => setIsMobileDropdownOpen(false)}
+                      className="w-full flex items-center justify-start gap-3"
+                    >
+                      <User size={20} className="text-[#543310]" />
+                      <span className="text-[#543310] font-semibold">
+                        Profil Saya
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Logout Button */}
+                  <button
+                    onClick={() => {
+                      setIsMobileDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center justify-start gap-3"
+                  >
+                    <LogOut size={20} className="text-[#9F1239]" />
+                    <span className="text-[#9F1239] font-semibold">Keluar</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 };
